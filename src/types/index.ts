@@ -1,5 +1,3 @@
-// src/types/index.ts
-
 export type TransactionType = 'Expense' | 'Income'
 
 export interface Transaction {
@@ -36,5 +34,5 @@ export const INCOME_CATEGORIES = [
   'Others'
 ] as const
 
-export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number]//so const build tuple
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number]
 export type IncomeCategory = typeof INCOME_CATEGORIES[number]

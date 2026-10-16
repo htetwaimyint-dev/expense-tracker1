@@ -1,4 +1,3 @@
-// src/composables/useTransactions.ts
 import { ref, computed, onMounted, watch } from 'vue'
 import type { Transaction, TransactionType } from '@/types/index'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types/index'
@@ -6,14 +5,12 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types/index'
 export function useTransactions() {
   const transactions = ref<Transaction[]>([])
 
-  // Filter States
   const searchQuery = ref('')
   const selectedType = ref('All types')
   const selectedCategory = ref('All categories')
   const fromDate = ref('')
   const toDate = ref('')
 
-  // Pagination & Selection States
   const itemsPerPage = ref(5)
   const currentPage = ref(1)
   const selectedIds = ref<(string | number)[]>([])
@@ -22,7 +19,14 @@ export function useTransactions() {
   onMounted(() => {
     const saved = localStorage.getItem('transactions')
     if (saved) {
-      transactions.value = JSON.parse(saved)
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          transactions.value = parsed
+        }
+      } catch (error) {
+        console.error('Failed to parse transactions from localStorage:', error)
+      }
     } else {
       transactions.value = [
         { id: 1, type: 'Expense', amount: 5000, category: 'Food', date: '2026-09-30', note: 'gym' },
@@ -34,27 +38,38 @@ export function useTransactions() {
     }
   })
 
-  watch(transactions, (newVal) => {
-    localStorage.setItem('transactions', JSON.stringify(newVal))
-  }, { deep: true })
+  watch(
+    transactions,
+    (newVal) => {
+      try {
+        localStorage.setItem('transactions', JSON.stringify(newVal))
+      } catch (error) {
+        console.error('Failed to persist transactions:', error)
+      }
+    },
+    { deep: true }
+  )
 
-  // When Type changes in filter, reset selectedCategory to 'All categories'
-  watch(selectedType, () => {
-    selectedCategory.value = 'All categories'
+  watch([selectedType, searchQuery, selectedCategory, fromDate, toDate, itemsPerPage], () => {
+    if (selectedType.value === 'Expense' && !EXPENSE_CATEGORIES.includes(selectedCategory.value as any)) {
+      selectedCategory.value = 'All categories'
+    } else if (selectedType.value === 'Income' && !INCOME_CATEGORIES.includes(selectedCategory.value as any)) {
+      selectedCategory.value = 'All categories'
+    }
+    currentPage.value = 1
   })
 
-  const totalIncome = computed(() => {
+  const totalIncome = computed<number>(() => {
     return transactions.value.filter(t => t.type === 'Income').reduce((acc, t) => acc + t.amount, 0)
   })
 
-  const totalExpenses = computed(() => {
+  const totalExpenses = computed<number>(() => {
     return transactions.value.filter(t => t.type === 'Expense').reduce((acc, t) => acc + t.amount, 0)
   })
 
-  const balance = computed(() => totalIncome.value - totalExpenses.value)
+  const balance = computed<number>(() => totalIncome.value - totalExpenses.value)
 
-  // Dynamic Categories for Filter Dropdown in TransactionsView
-  const filteredCategories = computed(() => {
+  const filteredCategories = computed<string[]>(() => {
     if (selectedType.value === 'Expense') {
       return [...EXPENSE_CATEGORIES]
     } else if (selectedType.value === 'Income') {
@@ -63,8 +78,7 @@ export function useTransactions() {
     return [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
   })
 
-  // Filtered Transactions Logic
-  const filteredTransactions = computed(() => {
+  const filteredTransactions = computed<Transaction[]>(() => {
     return transactions.value.filter(tx => {
       const matchesSearch = 
         tx.note?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -82,31 +96,39 @@ export function useTransactions() {
     })
   })
 
-  // Pagination Computed Logic
-  const totalPages = computed(() => Math.ceil(filteredTransactions.value.length / itemsPerPage.value) || 1)
-  
-  const paginatedTransactions = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value
-    return filteredTransactions.value.slice(start, start + itemsPerPage.value)//end 
+  const totalPages = computed<number>(() => {
+    return Math.max(1, Math.ceil(filteredTransactions.value.length / itemsPerPage.value))
   })
 
-  const clearFilters = () => {
+  watch(totalPages, (newTotalPages) => {
+    if (currentPage.value > newTotalPages) {
+      currentPage.value = newTotalPages
+    }
+  })
+
+  const paginatedTransactions = computed<Transaction[]>(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    return filteredTransactions.value.slice(start, start + itemsPerPage.value)
+  })
+
+  const clearFilters = (): void => {
     searchQuery.value = ''
     selectedType.value = 'All types'
     selectedCategory.value = 'All categories'
     fromDate.value = ''
     toDate.value = ''
+    currentPage.value = 1
   }
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = (): void => {
     if (selectAll.value) {
       selectedIds.value = paginatedTransactions.value.map(t => t.id)
     } else {
       selectedIds.value = []
     }
   }
-  //Add Transaction
-  const addTransaction = (txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }) => {
+
+  const addTransaction = (txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }): void => {
     const newTx: Transaction = {
       id: Date.now(),
       ...txData
@@ -114,7 +136,7 @@ export function useTransactions() {
     transactions.value.unshift(newTx)
   }
 
-  const updateTransaction = (id: string | number, txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }) => {
+  const updateTransaction = (id: string | number, txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }): void => {
     const index = transactions.value.findIndex(t => t.id === id)
     if (index !== -1) {
       transactions.value[index] = {
@@ -127,7 +149,7 @@ export function useTransactions() {
   const handleSaveTransaction = (
     editingId: string | number | null, 
     txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }
-  ) => {
+  ): void => {
     if (editingId !== null) {
       updateTransaction(editingId, txData)
     } else {
@@ -135,11 +157,12 @@ export function useTransactions() {
     }
   }
 
-  const deleteTransaction = (id: string | number) => {
+  const deleteTransaction = (id: string | number): void => {
     transactions.value = transactions.value.filter(t => t.id !== id)
+    selectedIds.value = selectedIds.value.filter(selectedId => selectedId !== id)
   }
 
-  const bulkDeleteTransactions = () => {
+  const bulkDeleteTransactions = (): void => {
     transactions.value = transactions.value.filter(t => !selectedIds.value.includes(t.id))
     selectedIds.value = []
     selectAll.value = false

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { TransactionType } from '@/types/index'
-import TransactionForm from '@/components/TransactionForm.vue'
-import { useTransactions } from '@/composables/useTransactions'
+import TransactionForm from '@/features/transactions/components/TransactionForm.vue'
+import { useTransactions } from '@/features/transactions/composables/useTransactions'
+import AppLayout from '@/components/ui/AppLayout.vue'
+import BaseAlert from '@/components/ui/BaseAlert.vue'
 import { 
-  Wallet, LayoutDashboard, ArrowLeftRight, PieChart, 
-  Plus, TrendingUp, TrendingDown, Layers, X 
+  Wallet, Plus, TrendingUp, TrendingDown, Layers, X, Menu 
 } from 'lucide-vue-next'
 
 const { transactions, totalIncome, totalExpenses, balance, handleSaveTransaction } = useTransactions()
@@ -15,7 +16,7 @@ const categoriesUsedCount = computed(() => {
   return cats.size
 })
 
-const expenseByCategory = computed(() => {//e.g amount added for food 
+const expenseByCategory = computed(() => {
   const map: Record<string, number> = {}
   transactions.value.filter(t => t.type === 'Expense').forEach(t => {
     map[t.category] = (map[t.category] || 0) + t.amount
@@ -40,14 +41,25 @@ const incomeByCategory = computed(() => {
 })
 
 const recentTransactions = computed(() => {
-  return [...transactions.value].slice(0, 5)//Spread Operator
+  return [...transactions.value].slice(0, 5)
 })
 
 const showAddModal = ref(false)
+const isMobileMenuOpen = ref(false)
+
+// Alert States
+const showAlert = ref(false)
+const alertMessage = ref('Transaction added')
 
 const onSaveTransaction = (txData: { type: TransactionType; amount: number; category: string; date: string; note: string | null }) => {
   handleSaveTransaction(null, txData)
   closeModal()
+  
+  alertMessage.value = 'Transaction added'
+  showAlert.value = true
+  setTimeout(() => {
+    showAlert.value = false
+  }, 3000)
 }
 
 const closeModal = () => {
@@ -56,42 +68,56 @@ const closeModal = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-rose-100/60 flex font-sans text-slate-800">
-    <aside class="w-64 bg-pink-950 text-pink-200 border-r border-pink-900/50 hidden md:flex flex-col justify-between p-6 shadow-2xl">
-      <div class="space-y-8">
-        <div class="flex items-center gap-3 px-1">
-          <div class="w-10 h-10 bg-pink-600 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg shadow-pink-600/40">
-            <Wallet class="w-5 h-5" />
+  <AppLayout>
+    <!-- Mobile Menu Drawer (Pass state reference if needed or handle locally per view) -->
+    <div v-if="isMobileMenuOpen" class="fixed inset-0 bg-pink-950/40 backdrop-blur-sm flex z-50 md:hidden">
+      <div class="w-72 bg-pink-950 text-pink-200 p-6 flex flex-col justify-between shadow-2xl h-full">
+        <div class="space-y-8">
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-pink-600 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg shadow-pink-600/40">
+                <Wallet class="w-5 h-5" />
+              </div>
+              <div>
+                <h2 class="font-bold text-white text-base tracking-wide">Expense Tracker</h2>
+                <p class="text-xs text-pink-300/80">Personal finance</p>
+              </div>
+            </div>
+            <button @click="isMobileMenuOpen = false" class="p-2 text-pink-400 hover:text-white rounded-xl">
+              <X class="w-5 h-5" />
+            </button>
           </div>
-          <div>
-            <h2 class="font-bold text-white text-base tracking-wide">Expense Tracker</h2>
-            <p class="text-xs text-pink-300/80">Personal finance</p>
-          </div>
+
+          <nav class="space-y-2" @click="isMobileMenuOpen = false">
+            <router-link to="/" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-pink-600 text-white font-semibold text-sm shadow-lg shadow-pink-600/35 transition-all">
+              <LayoutDashboard class="w-4 h-4" /> Dashboard
+            </router-link>
+            <router-link to="/transactions" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-pink-300 hover:text-white hover:bg-pink-900/50 font-medium text-sm transition-all">
+              <ArrowLeftRight class="w-4 h-4" /> Transactions
+            </router-link>
+            <router-link to="/budget" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-pink-300 hover:text-white hover:bg-pink-900/50 font-medium text-sm transition-all">
+              <PieChart class="w-4 h-4" /> Budget
+            </router-link>
+          </nav>
         </div>
-
-        <nav class="space-y-2">
-        <router-link to="/" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-pink-600 text-white font-semibold text-sm shadow-lg shadow-pink-600/35 transition-all">
-          <LayoutDashboard class="w-4 h-4" /> Dashboard
-        </router-link>
-        <router-link to="/transactions" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-pink-300 hover:text-white hover:bg-pink-900/50 font-medium text-sm transition-all">
-          <ArrowLeftRight class="w-4 h-4" /> Transactions
-        </router-link>
-        <router-link to="/budget" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-pink-300 hover:text-white hover:bg-pink-900/50 font-medium text-sm transition-all">
-          <PieChart class="w-4 h-4" /> Budget
-        </router-link>
-        </nav>
+        <div class="text-xs text-pink-400/60 border-t border-pink-900/60 pt-4 px-1">
+          Data is stored locally in your browser.
+        </div>
       </div>
+      <div class="flex-1" @click="isMobileMenuOpen = false"></div>
+    </div>
 
-      <div class="text-xs text-pink-400/60 border-t border-pink-900/60 pt-4 px-1">
-        Data is stored locally in your browser.
-      </div>
-    </aside>
-
-    <main class="flex-1 p-6 md:p-10 max-w-7xl mx-auto space-y-6 overflow-y-auto">
+    <main class="flex-1 p-6 md:p-10 max-w-7xl mx-auto space-y-6 overflow-y-auto w-full">
+      <!-- Header with Hamburger Menu beside Title -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-black tracking-tight text-pink-950">Dashboard</h1>
-          <p class="text-sm text-pink-700/70 mt-0.5 font-medium">{{ transactions.length }} transactions tracked</p>
+        <div class="flex items-center gap-3">
+          <button @click="isMobileMenuOpen = true" class="md:hidden p-3 bg-pink-950 text-white rounded-2xl shadow-md flex items-center justify-center">
+            <Menu class="w-5 h-5" />
+          </button>
+          <div>
+            <h1 class="text-2xl font-black tracking-tight text-pink-950">Dashboard</h1>
+            <p class="text-sm text-pink-700/70 mt-0.5 font-medium">{{ transactions.length }} transactions tracked</p>
+          </div>
         </div>
 
         <button @click="showAddModal = true" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-all shadow-xl shadow-pink-600/30 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
@@ -99,6 +125,7 @@ const closeModal = () => {
         </button>
       </div>
 
+      <!-- Stats & Content grids (မူရင်းအတိုင်း) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
@@ -209,7 +236,6 @@ const closeModal = () => {
       </div>
     </main>
 
-    <!-- Add Transaction Modal -->
     <div v-if="showAddModal" class="fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
       <div class="bg-white p-7 rounded-3xl max-w-md w-full space-y-6 shadow-2xl border border-pink-100">
         <div class="flex justify-between items-center">
@@ -220,5 +246,7 @@ const closeModal = () => {
         <TransactionForm @add-transaction="onSaveTransaction" @cancel="closeModal" />
       </div>
     </div>
-  </div>
+  </AppLayout>
+
+  <BaseAlert :show="showAlert" :message="alertMessage" @close="showAlert = false" />
 </template>
