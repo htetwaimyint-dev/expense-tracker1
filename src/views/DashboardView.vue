@@ -5,8 +5,13 @@ import TransactionForm from '@/features/transactions/components/TransactionForm.
 import { useTransactions } from '@/features/transactions/composables/useTransactions'
 import AppLayout from '@/components/ui/AppLayout.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import { formatCurrency } from '@/utils/formatCurrency'
+import { formatDate } from '@/utils/dateFormatter'
 import { 
-  Wallet, Plus, TrendingUp, TrendingDown, Layers, X, Menu 
+  Wallet, Plus, TrendingUp, TrendingDown, Layers, X, Menu, ArrowLeftRight, PieChart 
 } from 'lucide-vue-next'
 
 const { transactions, totalIncome, totalExpenses, balance, handleSaveTransaction } = useTransactions()
@@ -69,7 +74,7 @@ const closeModal = () => {
 
 <template>
   <AppLayout>
-    <!-- Mobile Menu Drawer (Pass state reference if needed or handle locally per view) -->
+    <!-- Mobile Menu Drawer -->
     <div v-if="isMobileMenuOpen" class="fixed inset-0 bg-pink-950/40 backdrop-blur-sm flex z-50 md:hidden">
       <div class="w-72 bg-pink-950 text-pink-200 p-6 flex flex-col justify-between shadow-2xl h-full">
         <div class="space-y-8">
@@ -120,56 +125,56 @@ const closeModal = () => {
           </div>
         </div>
 
-        <button @click="showAddModal = true" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-all shadow-xl shadow-pink-600/30 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
+        <BaseButton variant="primary" @click="showAddModal = true" class="flex items-center gap-2">
           <Plus class="w-4 h-4" /> Add transaction
-        </button>
+        </BaseButton>
       </div>
 
-      <!-- Stats & Content grids (မူရင်းအတိုင်း) -->
+      <!-- Stats & Content grids using BaseCard -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Balance</span>
             <div class="p-2.5 bg-pink-50 text-pink-600 rounded-2xl"><Wallet class="w-4 h-4" /></div>
           </div>
-          <div class="text-xl font-black text-pink-950">MMK {{ balance.toLocaleString() }}</div>
+          <div class="text-xl font-black text-pink-950">{{ formatCurrency(balance) }}</div>
           <div class="text-xs text-pink-700/60 font-medium">Income minus expenses</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Total Income</span>
             <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><TrendingUp class="w-4 h-4" /></div>
           </div>
-          <div class="text-xl font-black text-emerald-600">MMK {{ totalIncome.toLocaleString() }}</div>
+          <div class="text-xl font-black text-emerald-600">{{ formatCurrency(totalIncome) }}</div>
           <div class="text-xs text-pink-700/60 font-medium">All recorded earnings</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Total Expense</span>
             <div class="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><TrendingDown class="w-4 h-4" /></div>
           </div>
-          <div class="text-xl font-black text-rose-600">MMK {{ totalExpenses.toLocaleString() }}</div>
+          <div class="text-xl font-black text-rose-600">{{ formatCurrency(totalExpenses) }}</div>
           <div class="text-xs text-pink-700/60 font-medium">All recorded spending</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Categories Used</span>
             <div class="p-2.5 bg-amber-50 text-amber-600 rounded-2xl"><Layers class="w-4 h-4" /></div>
           </div>
           <div class="text-xl font-black text-pink-950">{{ categoriesUsedCount }} of 13</div>
           <div class="text-xs text-pink-700/60 font-medium">Active categories</div>
-        </div>
+        </BaseCard>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-4">
+        <BaseCard class="p-6 space-y-4">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="font-bold text-pink-950">Expense by category</h3>
-              <p class="text-xs text-pink-700/60 font-medium">MMK {{ totalExpenses.toLocaleString() }} spent in total</p>
+              <p class="text-xs text-pink-700/60 font-medium">{{ formatCurrency(totalExpenses) }} spent in total</p>
             </div>
             <span class="text-xs font-bold text-pink-700 bg-pink-50 px-3 py-1.5 rounded-xl">{{ expenseByCategory.length }} categories</span>
           </div>
@@ -178,7 +183,7 @@ const closeModal = () => {
             <div v-for="item in expenseByCategory" :key="item.category" class="space-y-1.5">
               <div class="flex justify-between text-sm">
                 <span class="font-bold text-slate-700">{{ item.category }}</span>
-                <span class="font-bold text-slate-900">MMK {{ item.amount.toLocaleString() }} <span class="text-xs text-pink-700/60 font-normal">({{ item.percentage }}%)</span></span>
+                <span class="font-bold text-rose-600">{{ formatCurrency(item.amount) }} <span class="text-xs text-pink-700/60 font-normal">({{ item.percentage }}%)</span></span>
               </div>
               <div class="w-full bg-pink-50 h-2.5 rounded-full overflow-hidden">
                 <div class="bg-rose-500 h-full rounded-full transition-all duration-500" :style="{ width: `${item.percentage}%` }"></div>
@@ -186,13 +191,13 @@ const closeModal = () => {
             </div>
             <div v-if="expenseByCategory.length === 0" class="text-sm text-pink-400 text-center py-6">No expenses recorded.</div>
           </div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-4">
+        <BaseCard class="p-6 space-y-4">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="font-bold text-pink-950">Income by category</h3>
-              <p class="text-xs text-pink-700/60 font-medium">MMK {{ totalIncome.toLocaleString() }} earned in total</p>
+              <p class="text-xs text-pink-700/60 font-medium">{{ formatCurrency(totalIncome) }} earned in total</p>
             </div>
             <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl">{{ incomeByCategory.length }} categories</span>
           </div>
@@ -201,7 +206,7 @@ const closeModal = () => {
             <div v-for="item in incomeByCategory" :key="item.category" class="space-y-1.5">
               <div class="flex justify-between text-sm">
                 <span class="font-bold text-slate-700">{{ item.category }}</span>
-                <span class="font-bold text-slate-900">MMK {{ item.amount.toLocaleString() }} <span class="text-xs text-pink-700/60 font-normal">({{ item.percentage }}%)</span></span>
+                <span class="font-bold text-emerald-600">{{ formatCurrency(item.amount) }} <span class="text-xs text-pink-700/60 font-normal">({{ item.percentage }}%)</span></span>
               </div>
               <div class="w-full bg-pink-50 h-2.5 rounded-full overflow-hidden">
                 <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" :style="{ width: `${item.percentage}%` }"></div>
@@ -209,10 +214,10 @@ const closeModal = () => {
             </div>
             <div v-if="incomeByCategory.length === 0" class="text-sm text-pink-400 text-center py-6">No income recorded.</div>
           </div>
-        </div>
+        </BaseCard>
       </div>
 
-      <div class="bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-4">
+      <BaseCard class="p-6 space-y-4">
         <div class="flex justify-between items-center">
           <div>
             <h3 class="font-bold text-pink-950">Recent transactions</h3>
@@ -225,27 +230,22 @@ const closeModal = () => {
           <div v-for="tx in recentTransactions" :key="tx.id" class="py-3.5 flex justify-between items-center">
             <div>
               <div class="font-bold text-sm text-slate-800">{{ tx.note || tx.category }}</div>
-              <div class="text-xs text-pink-700/60 font-medium">{{ tx.category }} • {{ tx.date }}</div>
+              <div class="text-xs text-pink-700/60 font-medium">{{ tx.category }} • {{ formatDate(tx.date) }}</div>
             </div>
-            <div class="font-black text-sm" :class="tx.type === 'Income' ? 'text-emerald-600' : 'text-slate-900'">
-              {{ tx.type === 'Income' ? '+' : '-' }}MMK {{ tx.amount.toLocaleString() }}
+
+            <div class="font-black text-sm" :class="tx.type === 'Income' ? 'text-emerald-600' : 'text-rose-600'">
+              {{ tx.type === 'Income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
             </div>
           </div>
           <div v-if="recentTransactions.length === 0" class="py-8 text-center text-pink-400 text-sm">No recent transactions.</div>
         </div>
-      </div>
+      </BaseCard>
     </main>
 
-    <div v-if="showAddModal" class="fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div class="bg-white p-7 rounded-3xl max-w-md w-full space-y-6 shadow-2xl border border-pink-100">
-        <div class="flex justify-between items-center">
-          <h3 class="text-xl font-black text-pink-950">Add transaction</h3>
-          <button @click="closeModal" class="text-pink-400 hover:text-pink-700 p-2 rounded-xl hover:bg-pink-50 transition"><X class="w-5 h-5" /></button>
-        </div>
-
-        <TransactionForm @add-transaction="onSaveTransaction" @cancel="closeModal" />
-      </div>
-    </div>
+    <!-- Add Transaction Modal (Refactored with BaseModal) -->
+    <BaseModal :show="showAddModal" title="Add transaction" @close="closeModal">
+      <TransactionForm @add-transaction="onSaveTransaction" @cancel="closeModal" />
+    </BaseModal>
   </AppLayout>
 
   <BaseAlert :show="showAlert" :message="alertMessage" @close="showAlert = false" />

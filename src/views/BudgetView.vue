@@ -6,6 +6,10 @@ import BudgetForm from '@/features/budgets/components/BudgetForm.vue'
 import { EXPENSE_CATEGORIES } from '@/types/index'
 import AppLayout from '@/components/ui/AppLayout.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import { formatCurrency } from '@/utils/formatCurrency'
 import { 
   Wallet, LayoutDashboard, ArrowLeftRight, PieChart, 
   Plus, Target, TrendingDown, AlertTriangle, Pencil, Trash2, X, Coins, Menu 
@@ -135,56 +139,56 @@ const handleSaveBudget = (data: { category: string; limitAmount: number }) => {
           </div>
         </div>
 
-        <button @click="openAddModal" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-all shadow-xl shadow-pink-600/30 flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
+        <BaseButton variant="primary" @click="openAddModal" class="flex items-center gap-2">
           <Plus class="w-4 h-4" /> Add budget
-        </button>
+        </BaseButton>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Total Budget</span>
             <div class="p-2.5 bg-pink-50 text-pink-600 rounded-2xl"><Target class="w-4 h-4" /></div>
           </div>
-          <div class="text-xl font-black text-pink-950">MMK {{ totalBudget.toLocaleString() }}</div>
+          <div class="text-xl font-black text-pink-950">{{ formatCurrency(totalBudget) }}</div>
           <div class="text-xs text-pink-700/60 font-medium">Across {{ budgets.length }} categories</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Total Spent</span>
             <div class="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><TrendingDown class="w-4 h-4" /></div>
           </div>
-          <div class="text-xl font-black text-rose-600">MMK {{ totalSpent.toLocaleString() }}</div>
+          <div class="text-xl font-black text-rose-600">{{ formatCurrency(totalSpent) }}</div>
           <div class="text-xs text-pink-700/60 font-medium">Spent in budgeted categories</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Remaining</span>
             <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><Wallet class="w-4 h-4" /></div>
           </div>
           <div class="text-xl font-black" :class="remainingBudget < 0 ? 'text-rose-600' : 'text-emerald-600'">
-            {{ remainingBudget < 0 ? `-MMK ${Math.abs(remainingBudget).toLocaleString()}` : `MMK ${remainingBudget.toLocaleString()}` }}
+            {{ remainingBudget < 0 ? `-${formatCurrency(Math.abs(remainingBudget))}` : formatCurrency(remainingBudget) }}
           </div>
           <div class="text-xs text-pink-700/60 font-medium">Budget minus total spent</div>
-        </div>
+        </BaseCard>
 
-        <div class="bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-2">
+        <BaseCard class="p-5 space-y-2">
           <div class="flex items-center justify-between text-pink-400">
             <span class="text-xs font-bold uppercase tracking-wider">Over Budget</span>
             <div class="p-2.5 bg-amber-50 text-amber-600 rounded-2xl"><AlertTriangle class="w-4 h-4" /></div>
           </div>
           <div class="text-xl font-black text-pink-950">{{ overBudgetCount }} of {{ budgets.length }}</div>
           <div class="text-xs text-pink-700/60 font-medium">Categories past their limit</div>
-        </div>
+        </BaseCard>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-6">
+      <BaseCard class="p-6 space-y-6">
         <div class="flex justify-between items-center">
           <div>
             <h3 class="font-bold text-pink-950 text-lg">Budgets by category</h3>
-            <p class="text-xs text-pink-700/60 font-medium">MMK {{ totalSpent.toLocaleString() }} of MMK {{ totalBudget.toLocaleString() }} used</p>
+            <p class="text-xs text-pink-700/60 font-medium">{{ formatCurrency(totalSpent) }} of {{ formatCurrency(totalBudget) }} used</p>
           </div>
           <div class="flex items-center gap-2 bg-pink-50 px-3 py-1.5 rounded-xl">
             <Coins class="w-4 h-4 text-pink-600" />
@@ -198,15 +202,15 @@ const handleSaveBudget = (data: { category: string; limitAmount: number }) => {
               <div>
                 <span class="font-bold text-slate-800 text-sm">{{ b.category }}</span>
                 <span v-if="getCategorySpent(b.category) > b.limitAmount" class="ml-2 text-xs font-bold text-rose-600">
-                  Over by MMK {{ (getCategorySpent(b.category) - b.limitAmount).toLocaleString() }}
+                  Over by {{ formatCurrency(getCategorySpent(b.category) - b.limitAmount) }}
                 </span>
                 <span v-else class="ml-2 text-xs text-pink-700/60 font-medium">
-                  MMK {{ (b.limitAmount - getCategorySpent(b.category)).toLocaleString() }} left
+                  {{ formatCurrency(b.limitAmount - getCategorySpent(b.category)) }} left
                 </span>
               </div>
               <div class="flex items-center justify-between sm:justify-end gap-3">
                 <span class="text-xs font-bold text-slate-700">
-                  MMK {{ getCategorySpent(b.category).toLocaleString() }} / MMK {{ b.limitAmount.toLocaleString() }} 
+                  {{ formatCurrency(getCategorySpent(b.category)) }} / {{ formatCurrency(b.limitAmount) }} 
                   <span class="text-pink-700/60 font-normal">({{ getCategoryPercentage(getCategorySpent(b.category), b.limitAmount) }}%)</span>
                 </span>
                 <div class="flex items-center gap-1">
@@ -230,40 +234,38 @@ const handleSaveBudget = (data: { category: string; limitAmount: number }) => {
             </div>
             <div class="font-bold text-pink-950">No budgets yet</div>
             <p class="text-xs text-pink-700/60 max-w-xs mx-auto">Set a monthly limit to track your spending.</p>
-            <button @click="openAddModal" class="mt-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold px-5 py-2.5 rounded-2xl text-xs transition shadow-lg shadow-pink-600/30">
+            <BaseButton variant="primary" @click="openAddModal" class="mt-2 text-xs">
               + Add budget
-            </button>
+            </BaseButton>
           </div>
         </div>
-      </div>
+      </BaseCard>
     </main>
 
-    <!-- Reused BudgetForm Component -->
-    <BudgetForm 
-      v-if="showModal"
-      :isEditing="isEditing"
-      :initialCategory="selectedCategory"
-      :initialLimit="limitAmount"
-      :availableCategories="availableCategories"
-      @save="handleSaveBudget"
-      @cancel="showModal = false"
-    />
+    <!-- BudgetForm wrapped in BaseModal -->
+    <BaseModal :show="showModal" :title="isEditing ? 'Edit budget' : 'Add budget'" @close="showModal = false">
+      <BudgetForm 
+        :isEditing="isEditing"
+        :initialCategory="selectedCategory"
+        :initialLimit="limitAmount"
+        :availableCategories="availableCategories"
+        @save="handleSaveBudget"
+        @cancel="showModal = false"
+      />
+    </BaseModal>
 
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div class="bg-white p-7 rounded-3xl max-w-sm w-full space-y-5 shadow-2xl border border-pink-100">
-        <div class="flex justify-between items-center">
-          <h3 class="text-xl font-black text-pink-950">Delete budget</h3>
-          <button @click="showDeleteModal = false" class="text-pink-400 hover:text-pink-700 p-2 rounded-xl hover:bg-pink-50 transition"><X class="w-5 h-5" /></button>
-        </div>
+    <!-- Delete Confirmation Modal -->
+    <BaseModal :show="showDeleteModal" title="Delete budget" @close="showDeleteModal = false">
+      <div class="space-y-5">
         <p class="text-sm text-pink-800/60 font-medium">
           Delete the budget for <span class="font-bold text-slate-800">{{ deletingCategory }}</span>? This action cannot be undone.
         </p>
         <div class="flex justify-end gap-3 pt-2">
-          <button @click="showDeleteModal = false" class="px-5 py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-900 rounded-2xl text-sm font-bold transition">Cancel</button>
-          <button @click="executeDelete" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-sm font-bold transition shadow-md shadow-rose-600/30">Delete</button>
+          <BaseButton variant="secondary" @click="showDeleteModal = false">Cancel</BaseButton>
+          <BaseButton variant="danger" @click="executeDelete">Delete</BaseButton>
         </div>
       </div>
-    </div>
+    </BaseModal>
   </AppLayout>
 
   <BaseAlert :show="showAlert" :message="alertMessage" @close="showAlert = false" />

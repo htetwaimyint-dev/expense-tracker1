@@ -10,10 +10,10 @@ import BaseDropdown from '@/components/ui/BaseDropdown.vue'
 import { X } from 'lucide-vue-next'
 
 const props = defineProps<{
-  isEditing: boolean
+  isEditing: boolean //add budget or edit budget
   initialCategory?: string
   initialLimit?: number | ''
-  availableCategories: readonly string[]
+  availableCategories: readonly string[] //undefined budget acategories
 }>()
 
 const emit = defineEmits<{
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
-const validationSchema = toTypedSchema(budgetSchema)
+const validationSchema = toTypedSchema(budgetSchema)//Vee-Validation setup
 
 const { handleSubmit, defineField, resetForm, errors } = useForm({
   validationSchema,
@@ -53,7 +53,7 @@ watch(() => props.initialLimit, (newVal) => {
     })
   }
 })
-
+//Save
 const onSubmit = handleSubmit((formValues) => {
   emit('save', {
     category: formValues.category,
@@ -83,12 +83,13 @@ const onSubmit = handleSubmit((formValues) => {
             :disabled="isEditing" 
             :options="isEditing ? EXPENSE_CATEGORIES : availableCategories" 
             label="Category *"
-          >
+          >//* mean requied
             <option value="" disabled>Select a category</option>
             <option v-for="cat in (isEditing ? EXPENSE_CATEGORIES : availableCategories)" :key="cat" :value="cat">
               {{ cat }}
             </option>
           </BaseDropdown>
+          <!--Validation Warning-->
           <p v-if="!isEditing && availableCategories.length === 0" class="text-xs text-rose-500 mt-1 font-medium">All categories already have budgets set.</p>
         </div>
 

@@ -5,6 +5,12 @@ import TransactionForm from '@/features/transactions/components/TransactionForm.
 import { useTransactions } from '@/features/transactions/composables/useTransactions'
 import AppLayout from '@/components/ui/AppLayout.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import { formatCurrency } from '@/utils/formatCurrency'
+import { formatDate } from '@/utils/dateFormatter'
 import { 
   Wallet, LayoutDashboard, ArrowLeftRight, PieChart, 
   Plus, Search, Trash2, Edit3, X, ChevronDown, Menu 
@@ -50,7 +56,7 @@ const onSaveTransaction = (txData: { type: TransactionType; amount: number; cate
   const isEditing = editingId.value !== null
   handleSaveTransaction(editingId.value, txData)
   closeModal()
-
+  //Set Time
   alertMessage.value = isEditing ? 'Transaction updated' : 'Transaction added'
   showAlert.value = true
   setTimeout(() => {
@@ -136,20 +142,17 @@ const closeModal = () => {
           </div>
         </div>
 
-        <button @click="showAddModal = true" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-all shadow-xl shadow-pink-600/30 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
+        <BaseButton variant="primary" @click="showAddModal = true" class="flex items-center gap-2">
           <Plus class="w-4 h-4" /> Add transaction
-        </button>
+        </BaseButton>
       </div>
 
-      <!-- Filters & Table (မူရင်းအတိုင်း) -->
-      <div class="bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 space-y-5">
+      <!-- Filters Section using BaseCard & BaseInput -->
+      <BaseCard class="p-6 space-y-5">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label class="block text-xs font-bold text-pink-800/60 uppercase tracking-wider mb-2">Search</label>
-            <div class="relative">
-              <Search class="w-4 h-4 text-pink-400 absolute left-3.5 top-3.5" />
-              <input v-model="searchQuery" type="text" placeholder="Search notes..." class="w-full pl-10 pr-4 py-3 bg-pink-50/50 border border-pink-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-pink-500/15 focus:border-pink-500 outline-none text-sm font-medium transition-all" />
-            </div>
+            <BaseInput v-model="searchQuery" type="text" placeholder="Search notes..." />
           </div>
 
           <div>
@@ -190,25 +193,26 @@ const closeModal = () => {
 
         <div class="pt-4 border-t border-pink-100 flex flex-wrap items-center justify-between gap-6 text-sm font-medium">
           <div class="flex items-center gap-6">
-            <div>Income <span class="text-emerald-600 font-bold">MMK {{ totalIncome.toLocaleString() }}</span></div>
-            <div>Expenses <span class="text-rose-600 font-bold">MMK {{ totalExpenses.toLocaleString() }}</span></div>
-            <div>Balance <span class="text-pink-950 font-bold">MMK {{ balance.toLocaleString() }}</span></div>
+            <div>Income <span class="text-emerald-600 font-bold">{{ formatCurrency(totalIncome) }}</span></div>
+            <div>Expenses <span class="text-rose-600 font-bold">{{ formatCurrency(totalExpenses) }}</span></div>
+            <div>Balance <span class="text-pink-950 font-bold">{{ formatCurrency(balance) }}</span></div>
           </div>
           <button v-if="searchQuery || selectedType !== 'All types' || selectedCategory !== 'All categories' || fromDate || toDate" @click="clearFilters" class="text-xs text-pink-600 hover:text-pink-800 font-bold transition">Clear filters</button>
         </div>
-      </div>
+      </BaseCard>
 
       <div v-if="selectedIds.length > 0" class="bg-pink-600 text-white p-4 rounded-2xl flex items-center justify-between shadow-xl shadow-pink-600/20">
         <div class="flex items-center gap-3 text-sm font-semibold">
           <span class="bg-white/20 px-2.5 py-0.5 rounded-full text-xs">{{ selectedIds.length }} selected</span>
           <button @click="selectedIds = []; selectAll = false" class="text-xs text-pink-100 hover:text-white underline">Clear</button>
         </div>
-        <button @click="bulkDeleteTransactions" class="bg-white text-rose-600 hover:bg-rose-50 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition">
+        <BaseButton variant="danger" @click="bulkDeleteTransactions" class="bg-white text-rose-600 hover:bg-rose-50 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition">
           <Trash2 class="w-3.5 h-3.5" /> Delete selected
-        </button>
+        </BaseButton>
       </div>
 
-      <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl shadow-pink-200/40 border border-pink-200/60 overflow-hidden">
+      <!-- Transactions Table Section using BaseCard -->
+      <BaseCard class="overflow-hidden p-0">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -236,10 +240,10 @@ const closeModal = () => {
                   {{ tx.type }}
                 </td>
                 <td class="p-4.5 text-slate-700">{{ tx.category }}</td>
-                <td class="p-4.5 text-slate-500">{{ tx.date }}</td>
+                <td class="p-4.5 text-slate-500">{{ formatDate(tx.date) }}</td>
                 <td class="p-4.5 text-slate-500">{{ tx.note }}</td>
                 <td class="p-4.5 text-right font-bold" :class="tx.type === 'Income' ? 'text-emerald-600' : 'text-rose-600'">
-                  {{ tx.type === 'Income' ? '+' : '-' }}MMK {{ tx.amount.toLocaleString() }}
+                  {{ tx.type === 'Income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                 </td>
                 <td class="p-4.5 text-center">
                   <div class="flex items-center justify-center gap-1.5">
@@ -268,35 +272,30 @@ const closeModal = () => {
             </select>
 
             <div class="flex items-center gap-1.5">
-              <button @click="currentPage--" :disabled="currentPage === 1" class="px-3.5 py-1.5 rounded-xl border border-pink-200 bg-white disabled:opacity-40 text-xs font-bold hover:bg-pink-50 transition">Prev</button>
+              <BaseButton variant="secondary" @click="currentPage--" :disabled="currentPage === 1" class="px-3.5 py-1.5 text-xs">Prev</BaseButton>
               <span class="px-2.5 text-xs font-bold text-pink-950">{{ currentPage }} / {{ totalPages }}</span>
-              <button @click="currentPage++" :disabled="currentPage >= totalPages" class="px-3.5 py-1.5 rounded-xl border border-pink-200 bg-white disabled:opacity-40 text-xs font-bold hover:bg-pink-50 transition">Next</button>
+              <BaseButton variant="secondary" @click="currentPage++" :disabled="currentPage >= totalPages" class="px-3.5 py-1.5 text-xs">Next</BaseButton>
             </div>
           </div>
         </div>
-      </div>
+      </BaseCard>
     </main>
 
-    <div v-if="showAddModal" class="fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div class="bg-white p-7 rounded-3xl max-w-md w-full space-y-6 shadow-2xl border border-pink-100 animate-in fade-in zoom-in duration-200">
-        <div class="flex justify-between items-center">
-          <h3 class="text-xl font-black text-pink-950">{{ editingId ? 'Edit transaction' : 'Add transaction' }}</h3>
-          <button @click="closeModal" class="text-pink-400 hover:text-pink-700 p-2 rounded-xl hover:bg-pink-50 transition"><X class="w-5 h-5" /></button>
-        </div>
-        <TransactionForm :initialData="editingTransaction" @add-transaction="onSaveTransaction" @cancel="closeModal" />
-      </div>
-    </div>
+    <!-- Add/Edit Modal (Refactored with BaseModal) -->
+    <BaseModal :show="showAddModal" :title="editingId ? 'Edit transaction' : 'Add transaction'" @close="closeModal">
+      <TransactionForm :initialData="editingTransaction" @add-transaction="onSaveTransaction" @cancel="closeModal" />
+    </BaseModal>
 
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div class="bg-white p-7 rounded-3xl max-w-sm w-full space-y-5 shadow-2xl border border-pink-100">
-        <h3 class="text-xl font-black text-pink-950">Delete transaction</h3>
+    <!-- Delete Confirmation Modal (Refactored with BaseModal & BaseButton) -->
+    <BaseModal :show="showDeleteModal" title="Delete transaction" @close="showDeleteModal = false">
+      <div class="space-y-5">
         <p class="text-sm text-pink-800/60 font-medium">Delete this item? This action cannot be undone.</p>
         <div class="flex justify-end gap-3 pt-2">
-          <button @click="showDeleteModal = false" class="px-5 py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-900 rounded-2xl text-sm font-bold transition">Cancel</button>
-          <button @click="executeDelete" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-sm font-bold transition shadow-md shadow-rose-600/30">Delete</button>
+          <BaseButton variant="secondary" @click="showDeleteModal = false">Cancel</BaseButton>
+          <BaseButton variant="danger" @click="executeDelete">Delete</BaseButton>
         </div>
       </div>
-    </div>
+    </BaseModal>
   </AppLayout>
 
   <BaseAlert :show="showAlert" :message="alertMessage" @close="showAlert = false" />

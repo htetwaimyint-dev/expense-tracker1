@@ -22,7 +22,7 @@ export function useBudgets(transactionsRef: Ref<Transaction[]>) {
     },
     { deep: true }
   )
-
+  //calculated budget for each categories===Base data
   const categorySpentMap = computed(() => {
     const map = new Map<string, number>()
     for (const tx of transactionsRef.value) {
@@ -33,20 +33,20 @@ export function useBudgets(transactionsRef: Ref<Transaction[]>) {
     }
     return map
   })
-
+  //Show Total Budget
   const totalBudget = computed(() => {
     return budgets.value.reduce((sum, b) => sum + b.limitAmount, 0)
   })
-
+  //Show Total Spent
   const totalSpent = computed(() => {
     const spentMap = categorySpentMap.value
     return budgets.value.reduce((sum, b) => sum + (spentMap.get(b.category) || 0), 0)
   })
-
+  //Calculate Remaining Budget
   const remainingBudget = computed(() => {
     return totalBudget.value - totalSpent.value
   })
-
+  //Calculate Over Budget
   const overBudgetCount = computed(() => {
     const spentMap = categorySpentMap.value
     return budgets.value.filter(b => {
@@ -54,17 +54,17 @@ export function useBudgets(transactionsRef: Ref<Transaction[]>) {
       return spent > b.limitAmount
     }).length
   })
-
+  //Helper Function
   const getCategorySpent = (category: string): number => {
     return categorySpentMap.value.get(category) || 0
   }
-
+  //Calculate Percentage
   const getCategoryPercentage = (spent: number, limit: number): number => {
     if (!limit || limit <= 0) return 0
     const percentage = Math.round((spent / limit) * 100)
     return Math.min(percentage, 100)
   }
-
+  //Add or Edit
   const saveBudget = (budgetData: Budget) => {
     const index = budgets.value.findIndex(b => b.category === budgetData.category)
     if (index !== -1) {

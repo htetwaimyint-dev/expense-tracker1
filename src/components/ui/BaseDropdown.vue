@@ -2,13 +2,13 @@
 import { ChevronDown } from 'lucide-vue-next'
 
 defineProps<{
-  modelValue?: string | number | null
-  options?: readonly string[] | string[]
-  label?: string
+  modelValue?: string | number | null //food or transaport
+  options?: readonly string[] | string[] //category list
+  label?: string// over input box title(category or type)
   disabled?: boolean
 }>()
 
-defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue'])//Used v-model
 </script>
 
 <template>

@@ -3,7 +3,7 @@ import { X } from 'lucide-vue-next'
 
 defineProps<{
   show: boolean
-  title: string
+  title: string//Add Transaction or Budget ..
 }>()
 
 defineEmits(['close'])
